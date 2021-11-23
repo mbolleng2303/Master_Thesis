@@ -1,0 +1,39 @@
+{
+    "gpu": {
+        "use": false,
+        "id": 0
+    },
+
+    "model": "GatedGCN",
+    "dataset": "Task006_Lung",
+
+    "out_dir": "C:/Users/localadmin/OneDrive/Maxime_Bollengier - Copy/nnUNet_raw_data_base/nnUNet_raw_data/Task006_Lung",
+
+    "params": {
+        "seed": 41,
+        "epochs": 1000,
+        "batch_size": 10,
+        "init_lr": 0.001,
+        "lr_reduce_factor": 0.5,
+        "lr_schedule_patience": 5,
+        "min_lr": 1e-5,
+        "weight_decay": 0.0,
+        "print_epoch_interval": 5,
+        "max_time": 12
+    },
+
+    "net_params": {
+        "L": 3,
+        "hidden_dim": 30,
+        "out_dim": 125,
+        "residual": true,
+        "edge_feat": false,
+        "readout": "mean",
+        "in_feat_dropout": 0.0,
+        "dropout": 0.0,
+        "batch_norm": true,
+        "pos_enc": true,
+        "pos_enc_dim" : 125
+
+    }
+}
