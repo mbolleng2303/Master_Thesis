@@ -1,4 +1,5 @@
 from Network.gated_gcn_net import GatedGCNNet
+from Network.my_gcn_net import GNet
 
 """
     Utility file to select GraphNN model as
@@ -10,11 +11,15 @@ from Network.gated_gcn_net import GatedGCNNet
 def GatedGCN(net_params):
     return GatedGCNNet(net_params)
 
+def GUNet(net_params):
 
+    return GNet(net_params)
 
 def gnn_model(MODEL_NAME, net_params):
+
     models = {
         'GatedGCN': GatedGCN,
+        'GNet' : GUNet,
 
     }
 

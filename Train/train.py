@@ -7,7 +7,7 @@ import torch.nn as nn
 import math
 import dgl
 from Loss_function.Dice_variant import *
-from Train.metrics import dice as accuracy
+from Train.metrics import dice as metric
 
 """
     For GCNs
@@ -39,7 +39,7 @@ def train_epoch_sparse(model, optimizer, device, data_loader, epoch):
         #loss.backward()
         optimizer.step()
         epoch_loss += loss.detach().item()
-        epoch_train_acc += accuracy(batch_scores, batch_labels)
+        epoch_train_acc += metric(batch_scores, batch_labels)
     epoch_loss /= (iter + 1)
     epoch_train_acc /= (iter + 1)
 
@@ -63,7 +63,7 @@ def evaluate_network_sparse(model, device, data_loader, epoch):
                 batch_scores = model.forward(batch_graphs, batch_x, batch_e)
             loss = model.loss(batch_scores, batch_labels)
             epoch_test_loss += loss.detach().item()
-            epoch_test_acc += accuracy(batch_scores, batch_labels)
+            epoch_test_acc += metric(batch_scores, batch_labels)
         epoch_test_loss /= (iter + 1)
         epoch_test_acc /= (iter + 1)
 
@@ -88,14 +88,14 @@ def train_epoch_dense(model, optimizer, device, data_loader, epoch, batch_size):
 
         scores = model.forward(x_with_node_feat)
         loss = model.loss(scores, labels)
-        loss.backward()
+        #loss.backward()
 
         if not (iter % batch_size):
             optimizer.step()
             optimizer.zero_grad()
 
         epoch_loss += loss.detach().item()
-        epoch_train_acc += accuracy(scores, labels)
+        epoch_train_acc += metric(scores, labels)
     epoch_loss /= (iter + 1)
     epoch_train_acc /= (iter + 1)
 
@@ -115,7 +115,7 @@ def evaluate_network_dense(model, device, data_loader, epoch):
             scores = model.forward(x_with_node_feat)
             loss = model.loss(scores, labels)
             epoch_test_loss += loss.detach().item()
-            epoch_test_acc += accuracy(scores, labels)
+            epoch_test_acc += metric(scores, labels)
         epoch_test_loss /= (iter + 1)
         epoch_test_acc /= (iter + 1)
 

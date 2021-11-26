@@ -19,7 +19,7 @@ class GatedGCNNet(nn.Module):
     def __init__(self, net_params):
         super().__init__()
 
-        in_dim_node = 1 #net_params['in_dim']  # node_dim (feat is an integer)
+        in_dim_node = 27 #net_params['in_dim']  # node_dim (feat is an integer)
         in_dim_edge = 1  # edge_dim (feat is a float)
         hidden_dim = net_params['hidden_dim']
         n_classes = net_params['n_classes']
@@ -33,9 +33,9 @@ class GatedGCNNet(nn.Module):
         self.pos_enc = net_params['pos_enc']
         if self.pos_enc:
             pos_enc_dim = net_params['pos_enc_dim']
-            self.embedding_pos_enc = nn.Linear(pos_enc_dim-1, hidden_dim)
+            self.embedding_pos_enc = nn.Linear(pos_enc_dim, hidden_dim)
 
-        self.embedding_h = nn.Embedding(in_dim_node -1, hidden_dim)  # node feat is an integer
+        self.embedding_h = nn.Linear(in_dim_node, hidden_dim)  # node feat is an integer
         self.embedding_e = nn.Linear(in_dim_edge, hidden_dim)  # edge feat is a float
         self.layers = nn.ModuleList([GatedGCNLayer(hidden_dim, hidden_dim, dropout,
                                                    self.batch_norm, self.residual) for _ in range(n_layers)])
@@ -44,7 +44,7 @@ class GatedGCNNet(nn.Module):
     def forward(self, g, h, e, h_pos_enc=None):
 
         # input embedding
-        h = self.embedding_h(h)
+        h = self.embedding_h(h.T.float())
         if self.pos_enc:
             h_pos_enc = self.embedding_pos_enc(h_pos_enc.float())
             h = h + h_pos_enc
@@ -63,7 +63,7 @@ class GatedGCNNet(nn.Module):
 
         # calculating label weights for weighted loss computation
         V = label.size(0)
-        label_count = torch.bincount(label)
+        label_count = torch.bincount(label[:,0])
         label_count = label_count[label_count.nonzero()].squeeze()
         cluster_sizes = torch.zeros(self.n_classes).long().to(self.device)
         cluster_sizes[torch.unique(label)] = label_count

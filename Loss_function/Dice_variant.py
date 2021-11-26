@@ -7,7 +7,7 @@ class DiceLoss(nn.Module):
     def __init__(self, weight=None, size_average=True):
         super(DiceLoss, self).__init__()
 
-    def backward(self, inputs, targets, smooth=1):
+    def backward(self, inputs, targets, smooth=0.0000001):
         # comment out if your model contains a sigmoid or equivalent activation layer
         inputs = torch.sigmoid(inputs)
 
@@ -18,7 +18,7 @@ class DiceLoss(nn.Module):
         intersection = (inputs * targets).sum()
         dice = (2. * intersection + smooth) / (inputs.sum() + targets.sum() + smooth)
 
-        return (1 - dice).clone().detach()
+        return (1-dice).clone().detach()
 
 
 class DiceBCELoss(nn.Module):

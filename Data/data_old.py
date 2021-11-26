@@ -40,9 +40,8 @@ def img2graph(image):
     image = np.array(image)
     Size_x, Size_y , Size_z = image.shape
     Size_A = Size_x* Size_y * Size_z
-    # A = np.zeros([Size_A,Size_A])
-    edges = []
-    nodes=torch.zeros(Size_A,1)
+    A = np.zeros([Size_A,Size_A])
+    nodes=torch.zeros(Size_A)
     #nodes[0,:]= np.arange(0,Size_A)
     for x in range (0,Size_x):
         for y in range(0, Size_y):
@@ -54,17 +53,17 @@ def img2graph(image):
                 for i in range(-1,2):
                     for j in range(-1, 2):
                         for k in range(-1, 2):
-                            if x+i >=0 and y+j >=0 and z+k >=0  and x+i < Size_x and y+j < Size_y and z+k < Size_z:
+                            try :
                                 nodes[cord2idx([x+i,y+j,z+k],image.shape)]= (image[x+i,y+j,z+k])
-                                #A[current_idx, cord2idx([x+i,y+j,z+k],image.shape)] = 1
-                                if True :  #[ cord2idx([x + i, y + j, z + k], image.shape),current_idx] not in edges :
-                                    edges.append((current_idx, cord2idx([x + i, y + j, z + k], image.shape)))
-                            else :
+                                A[current_idx, cord2idx([x+i,y+j,z+k],image.shape)] = 1
+                            except IndexError : # TODO : replace by a function "is_edge_voxel"
+                                try:
+                                    A[current_idx, cord2idx([x + i, y + j, z + k],image.shape)] = 0
+                                except IndexError:
+                                    continue
+
                                 continue
-
-
-
-    return (nodes, edges)
+    return (A.T,nodes)
 
 
 def get_vertices(a):
@@ -83,14 +82,13 @@ def dgl_graph(img, prep = bool):
     image = nib.as_closest_canonical(image)
     image.set_data_dtype(np.uint8)
     image = image.get_fdata()
-    image = image[200:203, 200:203, 100:103]
+    image = image[200:205, 200:205, 100:105]
     if prep :
-        image = normalize1(normalize(image))
+        image = normalize1(normalize(image*-1))
     adj = img2graph(image)[0]
     #node_list = img2graph(image)[1][0]
-    node_features = (img2graph(image)[0]).long()
-    #edge_list = np.array(get_vertices(adj))
-    edge_list = np.array(img2graph(image)[1])
+    node_features = (img2graph(image)[1]).long()
+    edge_list = np.array(get_vertices(adj))
     #edge_features = torch.tensor(np.ones_like(edge_list))
     # Create the DGL Graph
     g = dgl.DGLGraph()
@@ -100,8 +98,7 @@ def dgl_graph(img, prep = bool):
     for src, dst in edge_list:
         g.add_edges(src.item(), dst.item())
     edge_feat_dim = 1
-    a =torch.ones(g.number_of_edges(),0)
-    g.edata['feat'] = torch.ones(g.number_of_edges(),1)
+    g.edata['feat'] = torch.ones(g.number_of_edges(), edge_feat_dim)
     #g.edata['feat'] = edge_features
     return g
 
@@ -250,15 +247,19 @@ class MsdDataset(torch.utils.data.Dataset):
         with open(data_dir + name + '.pkl', "rb") as f:
             f = pickle.load(f)
 
-            self.train = f[0]
-            self.val = f[1]
+            self.train = self.create_artificial_features(f[0])
+            self.val = self.create_artificial_features(f[1])
 
         print('train, val sizes :', len(self.train), len(self.val))
         print("[I] Finished loading.")
         print("[I] Data load time: {:.4f}s".format(time.time() - start))
 
     # create artifical data feature (= in degree) for each node
-
+    def create_artificial_features(self,dataset):
+        for (graph, _) in dataset:
+           ''' graph.ndata['feat'] = graph.in_degrees().view(-1, 1).int()
+            graph.edata['feat'] = torch.ones(graph.number_of_edges(), 1)'''
+        return dataset
     # form a mini batch from a given list of samples = [(graph, label) pairs]
     def collate(self, samples):
         # The input samples is a list of pairs (graph, label).

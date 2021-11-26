@@ -28,22 +28,22 @@ class GraphUnet(nn.Module):
         hs = []
         org_h = h
         for i in range(self.l_n):
-            h = self.down_gcns[i](g, h)
+            h = self.down_gcns[i](g, h) # conv
             adj_ms.append(g)
             down_outs.append(h)
-            g, h, idx = self.pools[i](g, h)
+            g, h, idx = self.pools[i](g, h) # pooling
             indices_list.append(idx)
-        h = self.bottom_gcn(g, h)
+        h = self.bottom_gcn(g, h) # bottleneck
         for i in range(self.l_n):
             up_idx = self.l_n - i - 1
             g, idx = adj_ms[up_idx], indices_list[up_idx]
-            g, h = self.unpools[i](g, h, down_outs[up_idx], idx)
-            h = self.up_gcns[i](g, h)
-            h = h.add(down_outs[up_idx])
+            g, h = self.unpools[i](g, h, down_outs[up_idx], idx) # unpooling
+            h = self.up_gcns[i](g, h) # conv
+            h = h.add(down_outs[up_idx]) # skip connection
             hs.append(h)
         h = h.add(org_h)
         hs.append(h)
-        return hs
+        return h #hs
 
 
 class GCN(nn.Module):
@@ -56,7 +56,7 @@ class GCN(nn.Module):
 
     def forward(self, g, h):
         h = self.drop(h)
-        h = torch.matmul(g, h)
+        h = torch.matmul(g, h.float())
         h = self.proj(h)
         h = self.act(h)
         return h

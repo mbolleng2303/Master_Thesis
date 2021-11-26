@@ -136,6 +136,7 @@ def train_val_pipeline(MODEL_NAME, dataset, params, net_params, dirs):
 
 
     else:
+
         # import train functions for all other GCNs
         from Train.train import train_epoch_sparse as train_epoch, \
             evaluate_network_sparse as evaluate_network
@@ -237,7 +238,7 @@ def main():
     """
     if True :
         parser = argparse.ArgumentParser()
-        parser.add_argument('--config', help="Please give a config.json file with training/model/data/param details", default='C:/Users/localadmin/PycharmProjects/pythonProject/Configs/test1.json')
+        parser.add_argument('--config', help="Please give a config.json file with training/model/data/param details", default='C:/Users/localadmin/PycharmProjects/pythonProject/Configs/test2.json')
         parser.add_argument('--gpu_id', help="Please give a value for gpu id")
         parser.add_argument('--model', help="Please give a value for model name")
         parser.add_argument('--dataset', help="Please give a value for dataset name")
@@ -376,13 +377,9 @@ def main():
         net_params['pos_enc_dim'] = int(args.pos_enc_dim)
 
     # ----------------SBM
-    a=dataset.train[0][0].ndata['feat']
+
     net_params['in_dim'] = torch.unique(dataset.train[0][0].ndata['feat'],dim=0).size(0)  # node_dim (feat is an integer)
     net_params['n_classes'] = torch.unique(dataset.train[0][1], dim=0).size(0)
-
-    if MODEL_NAME == 'RingGNN':
-        num_nodes = [dataset.train[i][0].number_of_nodes() for i in range(len(dataset.train))]
-        net_params['avg_node_num'] = int(np.ceil(np.mean(num_nodes)))
 
     root_log_dir = out_dir + 'logs/' + MODEL_NAME + "_" + DATASET_NAME + "_GPU" + str(
         config['gpu']['id']) + "_" + time.strftime('%Hh%Mm%Ss_on_%b_%d_%Y')
