@@ -83,7 +83,7 @@ def dgl_graph(img, prep = bool):
     image = nib.as_closest_canonical(image)
     image.set_data_dtype(np.uint8)
     image = image.get_fdata()
-    image = image[200:203, 200:203, 100:103]
+    image = image[200:210, 200:210, 100:110]
     if prep :
         image = normalize1(normalize(image))
     adj = img2graph(image)[0]

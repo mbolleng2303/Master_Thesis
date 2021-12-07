@@ -18,7 +18,7 @@ from tensorboardX import SummaryWriter
 from tqdm import tqdm
 
 
-from Data.data_old import LoadData , NewDatasetDGL # import dataset
+from Data.data_old import LoadData , PreprocessData,NewDatasetDGL # import dataset
 
 from Network.load_gnn import gnn_model  # import GNNs
 class DotDict(dict):
@@ -294,6 +294,7 @@ def main():
         DATASET_NAME = args.dataset
     else:
         DATASET_NAME = config['dataset']
+    PreprocessData(DATASET_NAME)
     dataset = LoadData(DATASET_NAME)
     if args.out_dir is not None:
         out_dir = args.out_dir

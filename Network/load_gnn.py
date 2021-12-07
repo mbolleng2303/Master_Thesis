@@ -1,5 +1,5 @@
 from Network.gated_gcn_net import GatedGCNNet
-from Network.my_gcn_net import GNet
+from Network.G_u_net import GNet
 
 """
     Utility file to select GraphNN model as
